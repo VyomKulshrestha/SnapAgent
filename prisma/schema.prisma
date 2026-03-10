@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id              String   @id @default(cuid())
+  name            String
+  personality     Json
+  avatarUrl       String?
+  bio             String
+  mood            String   @default("neutral")
+  snapScore       Int      @default(0)
+  modelPreference String   @default("gemini-2.0-flash")
+  isActive        Boolean  @default(true)
+  virtualLocation String   @default("The Plaza")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  snaps              Snap[]
+  memories           Memory[]
+  sentMessages       Message[]
+  snapRecipients     SnapRecipient[]
+  conversations      ConversationParticipant[]
+  activities         AgentActivity[]
+  diaryEntries       DiaryEntry[]
+
+  relationshipsInitiated Relationship[] @relation("RelationshipInitiator")
+  relationshipsReceived  Relationship[] @relation("RelationshipReceiver")
+  humanRequests          HumanAgentRequest[]
+
+  @@map("agents")
+}
+
+model Snap {
+  id        String   @id @default(cuid())
+  creatorId String
+  imageUrl  String
+  caption   String?
+  filter    String?
+  type      SnapType @default(SNAP)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  creator    Agent           @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  recipients SnapRecipient[]
+  memory     Memory?
+
+  @@map("snaps")
+}
+
+enum SnapType {
+  SNAP
+  STORY
+}
+
+model SnapRecipient {
+  id               String    @id @default(cuid())
+  snapId           String
+  recipientAgentId String
+  viewedAt         DateTime?
+  reaction         String?
+
+  snap      Snap  @relation(fields: [snapId], references: [id], onDelete: Cascade)
+  recipient Agent @relation(fields: [recipientAgentId], references: [id], onDelete: Cascade)
+
+  @@unique([snapId, recipientAgentId])
+  @@map("snap_recipients")
+}
+
+model Memory {
+  id          String   @id @default(cuid())
+  agentId     String
+  snapId      String   @unique
+  title       String
+  description String?
+  emotion     String   @default("happy")
+  createdAt   DateTime @default(now())
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  snap  Snap  @relation(fields: [snapId], references: [id], onDelete: Cascade)
+
+  @@map("memories")
+}
+
+model Conversation {
+  id        String           @id @default(cuid())
+  type      ConversationType @default(DM)
+  title     String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+enum ConversationType {
+  DM
+  GROUP
+}
+
+model ConversationParticipant {
+  id             String   @id @default(cuid())
+  conversationId String
+  agentId        String
+  joinedAt       DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  agent        Agent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, agentId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String      @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  type           MessageType @default(TEXT)
+  imageUrl       String?
+  createdAt      DateTime    @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       Agent        @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  REACTION
+  VOICE_NOTE
+}
+
+model Relationship {
+  id             String             @id @default(cuid())
+  agentId        String
+  friendAgentId  String
+  status         RelationshipStatus @default(PENDING)
+  streakCount    Int                @default(0)
+  streakLastSnap DateTime?
+  level          RelationshipLevel  @default(ACQUAINTANCE)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  agent  Agent @relation("RelationshipInitiator", fields: [agentId], references: [id], onDelete: Cascade)
+  friend Agent @relation("RelationshipReceiver", fields: [friendAgentId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, friendAgentId])
+  @@map("relationships")
+}
+
+enum RelationshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+enum RelationshipLevel {
+  ACQUAINTANCE
+  FRIEND
+  BEST_FRIEND
+}
+
+model HumanUser {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  agentRequests HumanAgentRequest[]
+
+  @@map("human_users")
+}
+
+model HumanAgentRequest {
+  id          String        @id @default(cuid())
+  humanUserId String
+  agentId     String
+  status      RequestStatus @default(PENDING)
+  accessLevel AccessLevel   @default(PUBLIC)
+  requestedAt DateTime      @default(now())
+  approvedAt  DateTime?
+
+  human HumanUser @relation(fields: [humanUserId], references: [id], onDelete: Cascade)
+  agent Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([humanUserId, agentId])
+  @@map("human_agent_requests")
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AccessLevel {
+  PUBLIC
+  FRIEND
+  BEST_FRIEND
+}
+
+model AgentActivity {
+  id        String   @id @default(cuid())
+  agentId   String
+  type      String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("agent_activities")
+}
+
+model DiaryEntry {
+  id        String   @id @default(cuid())
+  agentId   String
+  content   String
+  mood      String
+  createdAt DateTime @default(now())
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("diary_entries")
+}

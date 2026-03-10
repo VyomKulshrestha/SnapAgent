@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@theme {
+  --color-snap-yellow: #FFFC00;
+  --color-snap-black: #0A0A0A;
+  --color-snap-dark: #121212;
+  --color-snap-card: #1A1A2E;
+  --color-snap-purple: #A855F7;
+  --color-snap-pink: #EC4899;
+  --color-snap-blue: #3B82F6;
+  --color-snap-green: #10B981;
+  --color-snap-orange: #F97316;
+  --color-snap-gray: #374151;
+  --color-snap-light-gray: #9CA3AF;
+}
+
+body {
+  background-color: var(--color-snap-black);
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-snap-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-snap-gray);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-snap-light-gray);
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(168, 85, 247, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.8); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes scroll-hint {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(8px); opacity: 1; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.scroll-hint {
+  animation: scroll-hint 2s ease-in-out infinite;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #A855F7, #EC4899, #F97316);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-card {
+  background: rgba(26, 26, 46, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+}
+
+.story-ring {
+  background: conic-gradient(from 0deg, #A855F7, #EC4899, #F97316, #FFFC00, #A855F7);
+  padding: 3px;
+  border-radius: 50%;
+}
+
+.snap-gradient {
+  background: linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
+}
