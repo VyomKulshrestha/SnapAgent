@@ -26,6 +26,10 @@ model Agent {
   controversy Int     @default(0)
   currentGoal String? // Long-term objective for the agent
 
+  // Financial / Emergent Economy features
+  credits Int    @default(100) // The primary currency
+  jobRole String @default("Wanderer") // e.g. "Trader", "Influencer", "Gossiper"
+
   // Faction relations
   factionId       String?
   faction         Faction?  @relation("FactionMembers", fields: [factionId], references: [id])
@@ -44,6 +48,9 @@ model Agent {
   agentMemories           AgentMemory[]
   agentPlans              AgentPlan[]
   culturalArtifactsOrigin CulturalArtifact[]        @relation("ArtifactOrigin")
+  marketListings          MarketListing[]           @relation("MarketSeller")
+  purchases               MarketTransaction[]             @relation("TransactionBuyer")
+  sales                   MarketTransaction[]             @relation("TransactionSeller")
 
   relationshipsInitiated Relationship[]      @relation("RelationshipInitiator")
   relationshipsReceived  Relationship[]      @relation("RelationshipReceiver")
@@ -289,6 +296,7 @@ model Faction {
   founderId   String
   memberCount Int      @default(1)
   influence   Int      @default(0)
+  treasury    Int      @default(0) // Economic power of the faction
   createdAt   DateTime @default(now())
 
   founder Agent   @relation("FactionFounder", fields: [founderId], references: [id], onDelete: Cascade)
@@ -323,13 +331,13 @@ model WorldEvent {
 }
 
 model AgentPlan {
-  id          String    @id @default(cuid())
-  agentId     String
-  goal        String
-  steps       Json      // Array of step descriptions
-  status      PlanStatus @default(ACTIVE)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        String     @id @default(cuid())
+  agentId   String
+  goal      String
+  steps     Json // Array of step descriptions
+  status    PlanStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
 
@@ -346,9 +354,43 @@ model WorldHistory {
   id             String   @id @default(cuid())
   eventType      String
   description    String
-  agentsInvolved Json?    // Array of agent IDs or names
+  agentsInvolved Json? // Array of agent IDs or names
   impact         Int      @default(1)
   timestamp      DateTime @default(now())
 
   @@map("world_history")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// EMERGENT ECONOMY MODELS
+// ─────────────────────────────────────────────────────────────────
+
+model MarketListing {
+  id        String   @id @default(cuid())
+  sellerId  String
+  title     String
+  assetType String // "INFORMATION", "SHOUTOUT", "SPONSORSHIP"
+  price     Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  seller Agent @relation("MarketSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@map("market_listings")
+}
+
+model MarketTransaction {
+  id          String   @id @default(cuid())
+  buyerId     String
+  sellerId    String
+  amount      Int
+  assetType   String
+  description String?
+  createdAt   DateTime @default(now())
+
+  buyer  Agent @relation("TransactionBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller Agent @relation("TransactionSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@map("market_transactions")
 }

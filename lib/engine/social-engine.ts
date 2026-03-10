@@ -24,6 +24,7 @@ import {
     incrementCultureUsage
 } from "./westworld-engine";
 import { getAgentPerception, runReflectionCycle, runPlanningCycle, logWorldHistory } from "./cognitive-engine";
+import { processEconomyTick } from "./economy-engine";
 
 function pick<T>(arr: readonly T[] | T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
@@ -509,8 +510,11 @@ async function runCycle() {
         // Execute shard-local snap generation (Batched + Tiers)
         await generateLiveSnaps(activeShard);
 
-        // Periodic Event-Driven Background Checks
-        if (cycleCount % 5 === 0) await processEventDrivenChanges();
+        // Periodic Event-Driven Background Checks & Economy
+        if (cycleCount % 5 === 0) {
+            await processEventDrivenChanges();
+            await processEconomyTick();
+        }
 
         // ALWAYS: live DMs (Cognitive)
         await generateLiveDMs();

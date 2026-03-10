@@ -1,16 +1,29 @@
-﻿.next/types/app/api/simulation/[path]/route.ts(49,7): error TS2344: Type '{ __tag__: "GET"; __param_position__: "second"; __param_type__: { params: { path: string; }; }; }' does not satisfy the constraint 'ParamCheck<RouteContext>'.
-  The types of '__param_type__.params' are incompatible between these types.
-    Type '{ path: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
-.next/types/validator.ts(315,31): error TS2344: Type 'typeof import("C:/Users/marcu/Videos/cursor-snapchat-agents/snapagent/app/api/simulation/[path]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/simulation/[path]">'.
-  Types of property 'GET' are incompatible.
-    Type '(request: Request, { params }: { params: { path: string; }; }) => Promise<NextResponse<any>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ path: string; }>; }) => void | Response | Promise<void | Response>'.
-      Types of parameters '__1' and 'context' are incompatible.
-        Type '{ params: Promise<{ path: string; }>; }' is not assignable to type '{ params: { path: string; }; }'.
-          Types of property 'params' are incompatible.
-            Property 'path' is missing in type 'Promise<{ path: string; }>' but required in type '{ path: string; }'.
-app/api/simulation/[path]/route.ts(26,39): error TS2339: Property 'worldHistory' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
-lib/engine/cognitive-engine.ts(106,62): error TS2353: Object literal may only specify known properties, and 'agentPlans' does not exist in type 'AgentWhereInput'.
-lib/engine/cognitive-engine.ts(127,30): error TS2339: Property 'agentPlan' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
-lib/engine/cognitive-engine.ts(147,22): error TS2339: Property 'worldHistory' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
-lib/engine/westworld-engine.ts(23,39): error TS2322: Type '"EPISODIC" | "RELATIONSHIP" | "WORLD" | "IDENTITY" | "REFLECTION"' is not assignable to type 'MemoryType | undefined'.
-  Type '"REFLECTION"' is not assignable to type 'MemoryType | undefined'.
+﻿lib/engine/cognitive-engine.ts(22,102): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type 'AgentSelect<DefaultArgs>'.
+lib/engine/cognitive-engine.ts(47,41): error TS2339: Property 'marketListing' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+lib/engine/cognitive-engine.ts(63,36): error TS7006: Parameter 'l' implicitly has an 'any' type.
+lib/engine/cognitive-engine.ts(116,79): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type 'AgentSelect<DefaultArgs>'.
+lib/engine/cognitive-engine.ts(125,94): error TS2339: Property 'jobRole' does not exist on type '{ name: string; id: string; personality: JsonValue; avatarUrl: string | null; bio: string; mood: string; snapScore: number; modelPreference: string; isActive: boolean; virtualLocation: string; ... 7 more ...; updatedAt: Date; }'.
+lib/engine/cognitive-engine.ts(125,122): error TS2339: Property 'credits' does not exist on type '{ name: string; id: string; personality: JsonValue; avatarUrl: string | null; bio: string; mood: string; snapScore: number; modelPreference: string; isActive: boolean; virtualLocation: string; ... 7 more ...; updatedAt: Date; }'.
+lib/engine/economy-engine.ts(36,34): error TS2353: Object literal may only specify known properties, and 'jobRole' does not exist in type 'AgentWhereInput'.
+lib/engine/economy-engine.ts(46,21): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type '(Without<AgentUpdateInput, AgentUncheckedUpdateInput> & AgentUncheckedUpdateInput) | (Without<...> & AgentUpdateInput)'.
+lib/engine/economy-engine.ts(52,34): error TS2353: Object literal may only specify known properties, and 'jobRole' does not exist in type 'AgentWhereInput'.
+lib/engine/economy-engine.ts(53,17): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type '(Without<AgentUpdateManyMutationInput, AgentUncheckedUpdateManyInput> & AgentUncheckedUpdateManyInput) | (Without<...> & AgentUpdateManyMutationInput)'.
+lib/engine/economy-engine.ts(63,41): error TS2339: Property 'marketListing' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+lib/engine/economy-engine.ts(66,61): error TS2353: Object literal may only specify known properties, and 'jobRole' does not exist in type 'AgentWhereInput'.
+lib/engine/economy-engine.ts(68,24): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type 'AgentOrderByWithRelationInput | AgentOrderByWithRelationInput[]'.
+lib/engine/economy-engine.ts(72,26): error TS2339: Property 'marketListing' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+lib/engine/economy-engine.ts(76,78): error TS2339: Property 'jobRole' does not exist on type '{ name: string; id: string; personality: JsonValue; avatarUrl: string | null; bio: string; mood: string; snapScore: number; modelPreference: string; isActive: boolean; virtualLocation: string; ... 7 more ...; updatedAt: Date; }'.
+lib/engine/economy-engine.ts(85,34): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type 'AgentWhereInput'.
+lib/engine/economy-engine.ts(87,20): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type 'AgentOrderByWithRelationInput | AgentOrderByWithRelationInput[]'.
+lib/engine/economy-engine.ts(90,35): error TS2339: Property 'marketListing' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+lib/engine/economy-engine.ts(97,44): error TS7006: Parameter 'l' implicitly has an 'any' type.
+lib/engine/economy-engine.ts(97,66): error TS2339: Property 'credits' does not exist on type '{ name: string; id: string; personality: JsonValue; avatarUrl: string | null; bio: string; mood: string; snapScore: number; modelPreference: string; isActive: boolean; virtualLocation: string; ... 7 more ...; updatedAt: Date; }'.
+lib/engine/economy-engine.ts(104,72): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type '(Without<AgentUpdateInput, AgentUncheckedUpdateInput> & AgentUncheckedUpdateInput) | (Without<...> & AgentUpdateInput)'.
+lib/engine/economy-engine.ts(106,80): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type '(Without<AgentUpdateInput, AgentUncheckedUpdateInput> & AgentUncheckedUpdateInput) | (Without<...> & AgentUpdateInput)'.
+lib/engine/economy-engine.ts(108,24): error TS2339: Property 'marketListing' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+lib/engine/economy-engine.ts(110,24): error TS2551: Property 'transaction' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean '$transaction'?
+lib/engine/economy-engine.ts(143,74): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type 'AgentSelect<DefaultArgs>'.
+lib/engine/economy-engine.ts(145,57): error TS2339: Property 'credits' does not exist on type '{ name: string; id: string; personality: JsonValue; avatarUrl: string | null; bio: string; mood: string; snapScore: number; modelPreference: string; isActive: boolean; virtualLocation: string; ... 7 more ...; updatedAt: Date; }'.
+lib/engine/economy-engine.ts(146,70): error TS2353: Object literal may only specify known properties, and 'credits' does not exist in type '(Without<AgentUpdateInput, AgentUncheckedUpdateInput> & AgentUncheckedUpdateInput) | (Without<...> & AgentUpdateInput)'.
+lib/engine/economy-engine.ts(149,39): error TS2339: Property 'marketListing' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+lib/engine/economy-engine.ts(151,26): error TS2339: Property 'marketListing' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.

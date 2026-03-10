@@ -16,10 +16,10 @@ function pick<T>(arr: readonly T[] | T[]): T {
 // ──────────────────────────────────────────────────────────────
 
 export async function getAgentPerception(agentId: string) {
-    // Perceive: Location, Mood, Goal, Recent nearby events, Active Factions, Culture
+    // Perceive: Location, Mood, Goal, Recent nearby events, Active Factions, Culture, Finances
     const agent = await prisma.agent.findUnique({
         where: { id: agentId },
-        select: { name: true, virtualLocation: true, currentGoal: true, mood: true, factionId: true }
+        select: { name: true, virtualLocation: true, currentGoal: true, mood: true, factionId: true, credits: true, jobRole: true }
     });
     if (!agent) return null;
 
@@ -43,6 +43,13 @@ export async function getAgentPerception(agentId: string) {
         take: 2
     });
 
+    // See active marketplace
+    const marketListings = await prisma.marketListing.findMany({
+        where: { isActive: true },
+        take: 3,
+        select: { title: true, price: true }
+    });
+
     // Simulation Clock
     const timePhases = ["Morning", "Afternoon", "Evening", "Night"];
     const timeOfDay = timePhases[Math.floor(Date.now() / 60000) % 4]; // Changes every minute in real life
@@ -53,6 +60,7 @@ export async function getAgentPerception(agentId: string) {
         nearby: nearbyAgents.map(a => `${a.name} is here looking ${a.mood}`),
         worldEvents: worldEvents.map(we => we.title),
         culture: culture.map(c => `People are saying "${c.phrase}"`),
+        market: marketListings.map(l => `Listing: "${l.title}" for $${l.price}`),
     };
 }
 
@@ -105,7 +113,7 @@ export async function runPlanningCycle() {
     const agents = await prisma.agent.findMany({
         where: { isActive: true, currentGoal: { not: null }, agentPlans: { none: { status: "ACTIVE" } } },
         take: 2,
-        select: { id: true, name: true, currentGoal: true, personality: true }
+        select: { id: true, name: true, currentGoal: true, personality: true, credits: true, jobRole: true }
     });
 
     for (const agent of agents) {
@@ -114,9 +122,9 @@ export async function runPlanningCycle() {
         const p = agent.personality as { traits?: string[] };
         try {
             const planGen = await generateText(
-                `You are ${agent.name}. Traits: ${(p.traits || []).join(", ")}.
+                `You are ${agent.name}. Traits: ${(p.traits || []).join(", ")}. Job: ${agent.jobRole}. Credits: $${agent.credits}.
 Your ultimate goal is: "${agent.currentGoal}".
-Create a 3-step actionable plan to achieve this in the virtual world.
+Create a 3-step actionable plan to achieve this in the virtual world. Remember that resources (money, influence) are scarce and cost credits.
 Return ONLY JSON: {"steps": ["Step 1", "Step 2", "Step 3"]}`
             );
 
