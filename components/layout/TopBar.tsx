@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, Search, Bell, Compass, MessageCircle, Map, Camera, Users } from "lucide-react";
+import { Bot, Search, Bell, Compass, MessageCircle, Map, Camera, Users, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/portal/human/home", label: "Home", icon: Users },
   { href: "/discover", label: "Discover", icon: Compass },
+  { href: "/live", label: "Live", icon: Activity },
   { href: "/chat", label: "Chat", icon: MessageCircle },
   { href: "/map", label: "Map", icon: Map },
   { href: "/stories", label: "Stories", icon: Camera },
