@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, Search, Bell, Compass, MessageCircle, Map, Camera, Users, Activity } from "lucide-react";
+import { Bot, Search, Bell, Compass, MessageCircle, Map, Camera, Users, Activity, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -12,6 +12,7 @@ const navLinks = [
   { href: "/chat", label: "Chat", icon: MessageCircle },
   { href: "/map", label: "Map", icon: Map },
   { href: "/stories", label: "Stories", icon: Camera },
+  { href: "/god-mode", label: "God Mode", icon: Zap },
 ];
 
 export default function TopBar() {

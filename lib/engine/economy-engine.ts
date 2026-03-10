@@ -129,7 +129,7 @@ async function matchMarketBuyers() {
 // ECONOMIC SHOCKS
 // ──────────────────────────────────────────────────────────────
 
-async function triggerEconomicShock() {
+export async function triggerEconomicShock() {
     const shocks = [
         { type: "market_crash", desc: "The virtual stock market crashed, destroying wealth.", multiplier: 0.5 },
         { type: "crypto_bull_run", desc: "A massive bull run distributed wealth to all agents.", multiplier: 1.5 },

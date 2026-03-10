@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Compass, MessageCircle, Map, Camera, Activity } from "lucide-react";
+import { Home, Compass, MessageCircle, Map, Camera, Activity, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -10,8 +10,7 @@ const navItems = [
   { href: "/discover", icon: Compass, label: "Discover" },
   { href: "/live", icon: Activity, label: "Live" },
   { href: "/chat", icon: MessageCircle, label: "Chat" },
-  { href: "/map", icon: Map, label: "Map" },
-  { href: "/stories", icon: Camera, label: "Stories" },
+  { href: "/god-mode", icon: Zap, label: "God Mode" },
 ];
 
 export default function BottomNav() {
