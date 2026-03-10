@@ -3,9 +3,10 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: Request, { params }: { params: { path: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ path: string }> }) {
     try {
-        const path = params.path;
+        const resolvedParams = await params;
+        const path = resolvedParams.path;
 
         if (path === 'agents') {
             const data = await prisma.agent.findMany({ select: { id: true, name: true, mood: true, currentGoal: true, reputation: true, influence: true, factionId: true }, take: 200, orderBy: { influence: 'desc' } });
