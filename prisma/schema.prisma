@@ -8,29 +8,44 @@ datasource db {
 }
 
 model Agent {
-  id              String   @id @default(cuid())
+  id              String  @id @default(cuid())
   name            String
   personality     Json
   avatarUrl       String?
   bio             String
-  mood            String   @default("neutral")
-  snapScore       Int      @default(0)
-  modelPreference String   @default("gemini-2.0-flash")
-  isActive        Boolean  @default(true)
-  virtualLocation String   @default("The Plaza")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  mood            String  @default("neutral")
+  snapScore       Int     @default(0)
+  modelPreference String  @default("gemini-2.0-flash")
+  isActive        Boolean @default(true)
+  virtualLocation String  @default("The Plaza")
 
-  snaps              Snap[]
-  memories           Memory[]
-  sentMessages       Message[]
-  snapRecipients     SnapRecipient[]
-  conversations      ConversationParticipant[]
-  activities         AgentActivity[]
-  diaryEntries       DiaryEntry[]
+  // New Westworld / Status Economy features
+  followers   Int     @default(0)
+  influence   Int     @default(0)
+  reputation  Int     @default(0)
+  controversy Int     @default(0)
+  currentGoal String? // Long-term objective for the agent
 
-  relationshipsInitiated Relationship[] @relation("RelationshipInitiator")
-  relationshipsReceived  Relationship[] @relation("RelationshipReceiver")
+  // Faction relations
+  factionId       String?
+  faction         Faction?  @relation("FactionMembers", fields: [factionId], references: [id])
+  factionsFounded Faction[] @relation("FactionFounder")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  snaps                   Snap[]
+  memories                Memory[]
+  sentMessages            Message[]
+  snapRecipients          SnapRecipient[]
+  conversations           ConversationParticipant[]
+  activities              AgentActivity[]
+  diaryEntries            DiaryEntry[]
+  agentMemories           AgentMemory[]
+  culturalArtifactsOrigin CulturalArtifact[]        @relation("ArtifactOrigin")
+
+  relationshipsInitiated Relationship[]      @relation("RelationshipInitiator")
+  relationshipsReceived  Relationship[]      @relation("RelationshipReceiver")
   humanRequests          HumanAgentRequest[]
 
   @@map("agents")
@@ -148,8 +163,13 @@ model Relationship {
   streakCount    Int                @default(0)
   streakLastSnap DateTime?
   level          RelationshipLevel  @default(ACQUAINTANCE)
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+
+  // Long-term relationship stats
+  trust   Int @default(0) // -100 to 100
+  respect Int @default(0) // -100 to 100
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   agent  Agent @relation("RelationshipInitiator", fields: [agentId], references: [id], onDelete: Cascade)
   friend Agent @relation("RelationshipReceiver", fields: [friendAgentId], references: [id], onDelete: Cascade)
@@ -234,4 +254,68 @@ model DiaryEntry {
   agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
 
   @@map("diary_entries")
+}
+
+// ─────────────────────────────────────────────────────────────────
+// WESTWORLD ENGINE MODELS
+// ─────────────────────────────────────────────────────────────────
+
+model AgentMemory {
+  id         String     @id @default(cuid())
+  agentId    String
+  type       MemoryType @default(EPISODIC) // EPISODIC, RELATIONSHIP, WORLD, IDENTITY
+  content    String
+  importance Int        @default(1) // 1-10 scale
+  createdAt  DateTime   @default(now())
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("agent_memories")
+}
+
+enum MemoryType {
+  EPISODIC
+  RELATIONSHIP
+  WORLD
+  IDENTITY
+}
+
+model Faction {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  ideology    String
+  founderId   String
+  memberCount Int      @default(1)
+  influence   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  founder Agent   @relation("FactionFounder", fields: [founderId], references: [id], onDelete: Cascade)
+  members Agent[] @relation("FactionMembers")
+
+  @@map("factions")
+}
+
+model CulturalArtifact {
+  id            String   @id @default(cuid())
+  phrase        String   @unique
+  meaning       String
+  originAgentId String
+  usageCount    Int      @default(1)
+  createdAt     DateTime @default(now())
+
+  originAgent Agent @relation("ArtifactOrigin", fields: [originAgentId], references: [id], onDelete: Cascade)
+
+  @@map("cultural_artifacts")
+}
+
+model WorldEvent {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  impactLevel Int       @default(5) // 1-10
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  endedAt     DateTime?
+
+  @@map("world_events")
 }

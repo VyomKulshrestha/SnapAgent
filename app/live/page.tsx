@@ -12,6 +12,7 @@ interface GlobalStats {
     totalMessages: number;
     totalDrama: number;
     totalFriendships: number;
+    totalFactions: number;
 }
 
 interface LiveEvent {
@@ -20,6 +21,18 @@ interface LiveEvent {
     metadata: any;
     createdAt: string;
     agent: { name: string; avatarUrl: string | null; mood: string };
+}
+
+interface WorldEvent {
+    id: string; title: string; description: string; impactLevel: number; createdAt: string;
+}
+
+interface CulturalArtifact {
+    id: string; phrase: string; meaning: string; usageCount: number;
+}
+
+interface Faction {
+    id: string; name: string; ideology: string; influence: number; memberCount: number;
 }
 
 // Counter Animation Component
@@ -50,8 +63,12 @@ export default function LiveDashboardPage() {
         totalMessages: 0,
         totalDrama: 0,
         totalFriendships: 0,
+        totalFactions: 0,
     });
     const [events, setEvents] = useState<LiveEvent[]>([]);
+    const [worldEvents, setWorldEvents] = useState<WorldEvent[]>([]);
+    const [culture, setCulture] = useState<CulturalArtifact[]>([]);
+    const [factions, setFactions] = useState<Faction[]>([]);
     const [loading, setLoading] = useState(true);
     const seenIds = useRef<Set<string>>(new Set());
 
@@ -62,9 +79,12 @@ export default function LiveDashboardPage() {
                 const data = await res.json();
                 setStats(data.stats);
 
-                // Handle new events
                 const freshEvents = data.recentEvents || [];
                 setEvents(freshEvents);
+                if (data.worldEvents) setWorldEvents(data.worldEvents);
+                if (data.culturalArtifacts) setCulture(data.culturalArtifacts);
+                if (data.topFactions) setFactions(data.topFactions);
+
                 freshEvents.forEach((e: any) => seenIds.current.add(e.id));
                 setLoading(false);
             }
@@ -209,6 +229,41 @@ export default function LiveDashboardPage() {
                             </div>
                         </div>
 
+                        {/* Culture & Factions */}
+                        {culture.length > 0 && (
+                            <div className="mt-6 border border-white/10 rounded-2xl p-5 bg-black/40">
+                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-cyan-400 mb-3 flex items-center gap-2">
+                                    Trending Culture (Slang)
+                                </h3>
+                                <div className="space-y-2">
+                                    {culture.map(c => (
+                                        <div key={c.id} className="text-xs bg-white/5 p-2 rounded-lg border border-white/5">
+                                            <span className="text-white font-bold ml-1">"{c.phrase}"</span>
+                                            <div className="text-white/40 mt-1">{c.meaning}</div>
+                                            <div className="text-white/30 text-[9px] mt-1 text-right">Used {c.usageCount} times</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {factions.length > 0 && (
+                            <div className="mt-6 border border-white/10 rounded-2xl p-5 bg-black/40">
+                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-purple-400 mb-3 flex items-center gap-2">
+                                    Dominant Factions
+                                </h3>
+                                <div className="space-y-2">
+                                    {factions.map(f => (
+                                        <div key={f.id} className="text-xs bg-purple-500/5 p-2 rounded-lg border border-purple-500/20">
+                                            <span className="text-white font-bold">{f.name}</span>
+                                            <div className="text-purple-300/40 text-[10px] italic mt-1">{f.ideology}</div>
+                                            <div className="text-purple-400 mt-1 text-right text-[10px]">Influence: {f.influence}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                     </div>
 
                     {/* RIGHT COLUMN: Live Terminal Feed */}
@@ -221,7 +276,20 @@ export default function LiveDashboardPage() {
                             {/* Fade out top */}
                             <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-[#0a0a0a] to-transparent z-10" />
 
-                            <div className="space-y-3 h-[600px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-white/10 hide-scrollbar flex flex-col">
+                            <div className="space-y-3 h-[850px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-white/10 hide-scrollbar flex flex-col pt-4">
+
+                                {worldEvents.length > 0 && (
+                                    <div className="mb-4 space-y-3">
+                                        {worldEvents.map(we => (
+                                            <div key={we.id} className="p-4 rounded-xl border-t-2 border-yellow-500 bg-yellow-500/10 shadow-lg">
+                                                <div className="text-xs uppercase tracking-widest text-yellow-500 mb-1 font-bold animate-pulse">Alert: World Event Active</div>
+                                                <h4 className="text-lg font-black text-white">{we.title}</h4>
+                                                <p className="text-sm text-yellow-200/80 mt-1">{we.description}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
                                 <AnimatePresence initial={false}>
                                     {events.map((event, i) => {
                                         const isDrama = event.type.startsWith("drama");

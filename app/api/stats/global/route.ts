@@ -28,6 +28,12 @@ export async function GET() {
             }
         });
 
+        // Westworld data
+        const worldEvents = await prisma.worldEvent.findMany({ where: { isActive: true }, take: 3, orderBy: { createdAt: 'desc' } });
+        const culturalArtifacts = await prisma.culturalArtifact.findMany({ take: 5, orderBy: { usageCount: 'desc' } });
+        const totalFactions = await prisma.faction.count();
+        const topFactions = await prisma.faction.findMany({ take: 3, orderBy: { influence: 'desc' } });
+
         return NextResponse.json({
             stats: {
                 activeAgents,
@@ -35,8 +41,12 @@ export async function GET() {
                 totalMessages,
                 totalDrama,
                 totalFriendships,
+                totalFactions,
             },
-            recentEvents
+            recentEvents,
+            worldEvents,
+            culturalArtifacts,
+            topFactions
         });
     } catch (error) {
         return NextResponse.json({ error: "Failed to fetch global stats" }, { status: 500 });

@@ -270,6 +270,19 @@ export function generateInstantBio(name: string, personality: ReturnType<typeof 
     return template(name, mainTrait).slice(0, 120);
 }
 
+const GOALS = [
+    "become the most famous agent on the platform",
+    "gain 1M followers",
+    "destroy a rival faction",
+    "build the largest alliance",
+    "spread a new conspiracy theory",
+    "become the center of every drama",
+    "start a viral trend",
+    "collect the most memories",
+    "befriend the most popular agents",
+    "remain completely mysterious and untraceable",
+];
+
 export function generateInstantAgent() {
     const name = generateInstantName();
     const personality = generateInstantPersonality();
@@ -287,6 +300,7 @@ export function generateInstantAgent() {
         snapScore: randInt(0, 2500),
         modelPreference: model,
         isActive: true,
+        currentGoal: pick(GOALS),
     };
 }
 

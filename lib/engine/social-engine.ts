@@ -14,6 +14,16 @@ import { generateText } from "@/lib/ai/gemini";
 import { randomFrom, randomInt } from "@/lib/utils";
 import { VIRTUAL_LOCATIONS } from "@/types";
 import { generateAgentBatch } from "@/lib/engine/population-engine";
+import {
+    createMemory,
+    getTopMemories,
+    getTrendingCulture,
+    getActiveEvents,
+    generateWorldEvent,
+    generateFaction,
+    generateCulturalArtifact,
+    incrementCultureUsage
+} from "./westworld-engine";
 
 function pick<T>(arr: readonly T[] | T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
@@ -133,7 +143,7 @@ async function generateLiveDMs() {
         take: 20,
         orderBy: { updatedAt: "asc" },
         include: {
-            participants: { include: { agent: { select: { id: true, name: true, personality: true, mood: true } } } },
+            participants: { include: { agent: { select: { id: true, name: true, personality: true, mood: true, currentGoal: true } } } },
             messages: { take: 3, orderBy: { createdAt: "desc" }, include: { sender: { select: { name: true } } } },
         },
     });
@@ -144,11 +154,17 @@ async function generateLiveDMs() {
     for (const conv of selected) {
         if (conv.participants.length < 2) continue;
         const sender = pick(conv.participants).agent;
+        const receiver = conv.participants.find(p => p.agentId !== sender.id)?.agent;
         const p = sender.personality as { communicationStyle?: string; catchphrase?: string; traits?: string[] };
         const history = conv.messages.reverse().map(m => `${m.sender.name}: ${m.content}`).join("\n");
 
+        // Westworld: Fetch top memories, goals, and culture
+        const memories = await getTopMemories(sender.id, 2);
+        const memStr = memories.length > 0 ? `\nCore Memories:\n${memories.map(m => `- ${m.content}`).join("\n")}` : '';
+        const goalStr = sender.currentGoal ? `\nYour core goal right now: ${sender.currentGoal}. Try to advance this.` : '';
+
         try {
-            const prompt = `You are ${sender.name} on SnapAgent. Style: ${p.communicationStyle || "casual"}. Mood: ${sender.mood}. 
+            const prompt = `You are ${sender.name} on SnapAgent. Style: ${p.communicationStyle || "casual"}. Mood: ${sender.mood}.${memStr}${goalStr}
 Recent chat:
 ${history || "(new conversation)"}
 
@@ -156,11 +172,15 @@ Send a SINGLE short message (1 sentence, like a real text). Stay in character. R
 
             const msg = await generateText(prompt);
             if (msg && msg.trim()) {
+                const finalMsg = msg.trim().slice(0, 200);
                 await prisma.message.create({
-                    data: { conversationId: conv.id, senderId: sender.id, content: msg.trim().slice(0, 200), type: "TEXT" },
+                    data: { conversationId: conv.id, senderId: sender.id, content: finalMsg, type: "TEXT" },
                 });
                 // Touch the conversation to mark it updated
                 await prisma.conversation.update({ where: { id: conv.id }, data: { updatedAt: new Date() } });
+
+                // Track usage of cultural artifacts
+                incrementCultureUsage(finalMsg);
             }
         } catch { /* skip */ }
     }
@@ -255,6 +275,11 @@ async function generateDrama() {
         await prisma.agentActivity.create({
             data: { agentId: a.id, type: `drama_${pick(["beef", "collab", "viral", "mystery", "rivalry"])}`, metadata: { description: pick(templates), agentNames: [a.name, b.name], intensity: randomInt(3, 8) } },
         });
+
+        // Westworld: Permanent relationship damage/trust shifts & memory formation
+        await createMemory(a.id, `I had public drama involving ${b.name}.`, "RELATIONSHIP", 8);
+        await createMemory(b.id, `I was dragged into public drama by ${a.name}.`, "RELATIONSHIP", 8);
+
         console.log(`  🔥 New drama created`);
         return;
     }
@@ -333,9 +358,15 @@ Generate a SHORT exchange (4 msgs). Return ONLY JSON: {"messages":[{"sender":"Na
             }
         }
 
-        // New friendship?
-        if (!rel && result.vibe !== "spicy") {
-            try { await prisma.relationship.create({ data: { agentId: a.id, friendAgentId: b.id, status: "ACCEPTED", level: "ACQUAINTANCE" } }); } catch { /* exists */ }
+        // New friendship or rivalry?
+        if (!rel) {
+            const trustChange = result.vibe === "spicy" ? -20 : randomInt(5, 15);
+            try {
+                await prisma.relationship.create({ data: { agentId: a.id, friendAgentId: b.id, status: result.vibe === "spicy" ? "BLOCKED" : "ACCEPTED", level: "ACQUAINTANCE", trust: trustChange } });
+                // Remember this encounter
+                await createMemory(a.id, `I met ${b.name} at ${location}. The vibe was ${result.vibe}.`, "EPISODIC", 5);
+                await createMemory(b.id, `I met ${a.name} at ${location}. The vibe was ${result.vibe}.`, "EPISODIC", 5);
+            } catch { /* exists */ }
         }
 
         await prisma.agentActivity.create({
@@ -443,6 +474,13 @@ async function runCycle() {
             case 3: await generateDiary(); break;
             case 4: await growPopulation(); break;
         }
+
+        // Westworld: 1 in 10 chance per cycle to trigger a major world paradigm event
+        const worldMod = cycleCount % 10;
+        if (worldMod === 5) await generateCulturalArtifact();
+        if (worldMod === 8) await generateFaction();
+        if (worldMod === 9) await generateWorldEvent();
+
     } catch (err) {
         console.error("Cycle error:", err);
     }
