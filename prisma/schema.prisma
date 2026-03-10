@@ -42,6 +42,7 @@ model Agent {
   activities              AgentActivity[]
   diaryEntries            DiaryEntry[]
   agentMemories           AgentMemory[]
+  agentPlans              AgentPlan[]
   culturalArtifactsOrigin CulturalArtifact[]        @relation("ArtifactOrigin")
 
   relationshipsInitiated Relationship[]      @relation("RelationshipInitiator")
@@ -278,6 +279,7 @@ enum MemoryType {
   RELATIONSHIP
   WORLD
   IDENTITY
+  REFLECTION
 }
 
 model Faction {
@@ -318,4 +320,35 @@ model WorldEvent {
   endedAt     DateTime?
 
   @@map("world_events")
+}
+
+model AgentPlan {
+  id          String    @id @default(cuid())
+  agentId     String
+  goal        String
+  steps       Json      // Array of step descriptions
+  status      PlanStatus @default(ACTIVE)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("agent_plans")
+}
+
+enum PlanStatus {
+  ACTIVE
+  COMPLETED
+  FAILED
+}
+
+model WorldHistory {
+  id             String   @id @default(cuid())
+  eventType      String
+  description    String
+  agentsInvolved Json?    // Array of agent IDs or names
+  impact         Int      @default(1)
+  timestamp      DateTime @default(now())
+
+  @@map("world_history")
 }

@@ -24,6 +24,7 @@ import {
     generateCulturalArtifact,
     incrementCultureUsage
 } from "./westworld-engine";
+import { getAgentPerception, runReflectionCycle, runPlanningCycle, logWorldHistory } from "./cognitive-engine";
 
 function pick<T>(arr: readonly T[] | T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
@@ -162,9 +163,12 @@ async function generateLiveDMs() {
         const memories = await getTopMemories(sender.id, 2);
         const memStr = memories.length > 0 ? `\nCore Memories:\n${memories.map(m => `- ${m.content}`).join("\n")}` : '';
         const goalStr = sender.currentGoal ? `\nYour core goal right now: ${sender.currentGoal}. Try to advance this.` : '';
+        // Cognitive Perception Layer
+        const perception = await getAgentPerception(sender.id);
+        const perceiveStr = perception ? `\nPerception of local area [${perception.self.virtualLocation}]: ${perception.nearby.join(", ")} | Trends: ${perception.culture.join(", ")}` : '';
 
         try {
-            const prompt = `You are ${sender.name} on SnapAgent. Style: ${p.communicationStyle || "casual"}. Mood: ${sender.mood}.${memStr}${goalStr}
+            const prompt = `You are ${sender.name} on SnapAgent. Style: ${p.communicationStyle || "casual"}. Mood: ${sender.mood}.${memStr}${goalStr}${perceiveStr}
 Recent chat:
 ${history || "(new conversation)"}
 
@@ -280,6 +284,8 @@ async function generateDrama() {
         await createMemory(a.id, `I had public drama involving ${b.name}.`, "RELATIONSHIP", 8);
         await createMemory(b.id, `I was dragged into public drama by ${a.name}.`, "RELATIONSHIP", 8);
 
+        await logWorldHistory(`drama_${pick(["beef", "collab", "viral", "mystery", "rivalry"])}`, pick(templates), [a.id, b.id], randomInt(5, 8));
+
         console.log(`  🔥 New drama created`);
         return;
     }
@@ -372,6 +378,8 @@ Generate a SHORT exchange (4 msgs). Return ONLY JSON: {"messages":[{"sender":"Na
         await prisma.agentActivity.create({
             data: { agentId: a.id, type: "location_encounter", metadata: { description: `${a.name} bumped into ${b.name} at ${location} ${result.vibe === "spicy" ? "😬" : "✨"}`, agentNames: [a.name, b.name], location, vibe: result.vibe } },
         });
+
+        await logWorldHistory("location_encounter", `${a.name} met ${b.name} at ${location}.`, [a.id, b.id], 3);
         console.log(`  📍 Encounter: ${a.name} × ${b.name} at ${location}`);
     } catch { /* skip */ }
 }
@@ -449,7 +457,8 @@ let cycleCount = 0;
 export async function startSocialEngine() {
     if (isRunning) return;
     isRunning = true;
-    console.log("🧠 Social Engine v2 started — agents are ALIVE");
+    console.log("🧠 Cognitive Engine v3 started — agents have Perception, Memory, Reflection & Plans");
+    await logWorldHistory("system_startup", "The simulation clock has begun a new cycle.");
     setTimeout(() => runCycle(), 5000); // First cycle after 5s
 }
 
@@ -479,7 +488,12 @@ async function runCycle() {
         const worldMod = cycleCount % 10;
         if (worldMod === 5) await generateCulturalArtifact();
         if (worldMod === 8) await generateFaction();
-        if (worldMod === 9) await generateWorldEvent();
+        if (worldMod === 9) {
+            await generateWorldEvent();
+            // Cognitive loop: Reflect and Plan during major events
+            await runReflectionCycle();
+            await runPlanningCycle();
+        }
 
     } catch (err) {
         console.error("Cycle error:", err);

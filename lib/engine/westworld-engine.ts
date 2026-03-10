@@ -17,7 +17,7 @@ function randomInt(min: number, max: number): number {
 // MEMORY ENGINE
 // ──────────────────────────────────────────────────────────────
 
-export async function createMemory(agentId: string, content: string, type: "EPISODIC" | "RELATIONSHIP" | "WORLD" | "IDENTITY" = "EPISODIC", importance: number = 5) {
+export async function createMemory(agentId: string, content: string, type: "EPISODIC" | "RELATIONSHIP" | "WORLD" | "IDENTITY" | "REFLECTION" = "EPISODIC", importance: number = 5) {
     try {
         await prisma.agentMemory.create({
             data: { agentId, content, type, importance }
